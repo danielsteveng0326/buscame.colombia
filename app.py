@@ -1,11 +1,13 @@
 import os
 import uuid
 
+import boto3
 from dotenv import load_dotenv
 from flask import (
     Flask,
     abort,
     jsonify,
+    redirect,
     render_template,
     request,
     send_from_directory,
@@ -22,8 +24,21 @@ db_url = os.environ.get("DATABASE_URL") or f"sqlite:///{os.path.join(BASE_DIR, '
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 
+# Fotos: bucket S3 de Railway si hay credenciales; si no, carpeta local (desarrollo)
+S3_BUCKET = os.environ.get("S3_BUCKET")
+s3 = None
+if S3_BUCKET:
+    s3 = boto3.client(
+        "s3",
+        endpoint_url=os.environ.get("S3_ENDPOINT"),
+        aws_access_key_id=os.environ.get("S3_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.environ.get("S3_SECRET_ACCESS_KEY"),
+        region_name=os.environ.get("S3_REGION", "auto"),
+    )
+
 UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER") or os.path.join(BASE_DIR, "uploads")
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+if not S3_BUCKET:
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 EXTENSIONES = {"jpg", "jpeg", "png", "webp"}
 TIPOS = {"busco", "avistada"}
@@ -99,7 +114,15 @@ def crear_reporte():
         if ext not in EXTENSIONES:
             return jsonify(error="La foto debe ser JPG, PNG o WEBP."), 400
         nombre_foto = f"{uuid.uuid4().hex}.{ext}"
-        foto.save(os.path.join(UPLOAD_FOLDER, nombre_foto))
+        if s3:
+            s3.upload_fileobj(
+                foto,
+                S3_BUCKET,
+                nombre_foto,
+                ExtraArgs={"ContentType": foto.mimetype or "image/jpeg"},
+            )
+        else:
+            foto.save(os.path.join(UPLOAD_FOLDER, nombre_foto))
 
     reporte = Reporte(
         tipo=tipo,
@@ -129,6 +152,14 @@ def stats():
 
 @app.route("/uploads/<path:nombre>")
 def uploads(nombre):
+    if s3:
+        # El bucket de Railway no es público: se redirige a una URL firmada temporal
+        url = s3.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": S3_BUCKET, "Key": nombre},
+            ExpiresIn=3600,
+        )
+        return redirect(url)
     return send_from_directory(UPLOAD_FOLDER, nombre)
 
 

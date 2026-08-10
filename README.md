@@ -33,7 +33,7 @@ Pensado para ser **rápido de desplegar y fácil de mantener**:
 - **Base de datos**: PostgreSQL (Railway) — SQLite automático en desarrollo local
 - **Frontend**: HTML + CSS + JavaScript vanilla, mobile-first
 - **Mapa**: [Leaflet](https://leafletjs.com/) con tiles de OpenStreetMap (gratis, sin API key)
-- **Fotos**: volumen persistente de Railway (sin servicios externos)
+- **Fotos**: bucket de Railway (almacenamiento S3, servidas con URLs firmadas) — carpeta local en desarrollo
 - **Servidor**: Gunicorn
 
 ## Estructura del proyecto
@@ -64,7 +64,7 @@ buscame.colombia/
 | `/api/reportes` | POST | Crear reporte (multipart/form-data) |
 | `/api/reportes` | GET | Últimos 500 reportes en JSON (para el mapa) |
 | `/api/stats` | GET | Contadores por tipo |
-| `/uploads/<archivo>` | GET | Fotos subidas |
+| `/uploads/<archivo>` | GET | Fotos (redirige a URL firmada del bucket) |
 
 **Modelo `Reporte`**: `id`, `tipo` (`busco` / `avistada`), `descripcion` (300), `telefono` (20), `lat`, `lng`, `foto`, `creado_en`.
 
@@ -96,20 +96,21 @@ Abre <http://localhost:5000>. El navegador pedirá permiso de ubicación al crea
    DATABASE_URL = ${{Postgres.DATABASE_URL}}
    ```
 
-3. **Montar el volumen para las fotos**: clic derecho sobre el servicio web → *Attach Volume* → mount path: `/app/uploads`. Luego agrega la variable:
-   ```
-   UPLOAD_FOLDER = /app/uploads
-   ```
+3. **Crear el bucket para las fotos**: en el proyecto → *Create* → *Bucket*.
 
-4. **Variables de entorno** (servicio web → *Variables*):
+4. **Variables de entorno** (servicio web → *Variables*). Si tu bucket o tu base de datos tienen otro nombre en el canvas, usa ese nombre en las referencias:
 
    | Variable | Valor |
    |---|---|
    | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` |
-   | `UPLOAD_FOLDER` | `/app/uploads` |
+   | `S3_BUCKET` | `${{Bucket.BUCKET}}` |
+   | `S3_ENDPOINT` | `${{Bucket.ENDPOINT}}` |
+   | `S3_ACCESS_KEY_ID` | `${{Bucket.ACCESS_KEY_ID}}` |
+   | `S3_SECRET_ACCESS_KEY` | `${{Bucket.SECRET_ACCESS_KEY}}` |
+   | `S3_REGION` | `${{Bucket.REGION}}` |
    | `SECRET_KEY` | una cadena aleatoria larga |
 
-5. **Dominio público**: servicio web → *Settings* → *Networking* → *Generate Domain*.
+5. **Dominio público**: servicio web → *Settings* → *Networking* → *Generate Domain*. Con esto la app queda disponible para todo el público.
 
 Con eso queda en línea. Cada push a `main` redespliega automáticamente.
 
