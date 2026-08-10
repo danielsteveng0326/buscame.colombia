@@ -24,14 +24,16 @@
 </section>
 
 <section class="contadores">
-  <div class="contador contador-busco">
+  <a href="{{ url_for('listado', tipo='busco') }}" class="contador contador-busco">
     <strong id="contador-busco">0</strong>
     <span>mascotas buscadas</span>
-  </div>
-  <div class="contador contador-avistada">
+    <em>ver listado →</em>
+  </a>
+  <a href="{{ url_for('listado', tipo='avistada') }}" class="contador contador-avistada">
     <strong id="contador-avistada">0</strong>
     <span>posibles encontradas</span>
-  </div>
+    <em>ver listado con fotos →</em>
+  </a>
 </section>
 
 <section class="seccion-mapa">

@@ -1,5 +1,7 @@
 import os
+import re
 import uuid
+from datetime import timedelta
 
 import boto3
 from dotenv import load_dotenv
@@ -13,7 +15,7 @@ from flask import (
     send_from_directory,
 )
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func
+from sqlalchemy import func, text
 
 load_dotenv()
 
@@ -43,6 +45,15 @@ if not S3_BUCKET:
 EXTENSIONES = {"jpg", "jpeg", "png", "webp"}
 TIPOS = {"busco", "avistada"}
 
+DEPARTAMENTOS = [
+    "Amazonas", "Antioquia", "Arauca", "Atlántico", "Bogotá D.C.", "Bolívar",
+    "Boyacá", "Caldas", "Caquetá", "Casanare", "Cauca", "Cesar", "Chocó",
+    "Córdoba", "Cundinamarca", "Guainía", "Guaviare", "Huila", "La Guajira",
+    "Magdalena", "Meta", "Nariño", "Norte de Santander", "Putumayo", "Quindío",
+    "Risaralda", "San Andrés y Providencia", "Santander", "Sucre", "Tolima",
+    "Valle del Cauca", "Vaupés", "Vichada",
+]
+
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev")
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url
@@ -55,6 +66,7 @@ db = SQLAlchemy(app)
 class Reporte(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tipo = db.Column(db.String(10), nullable=False, index=True)
+    departamento = db.Column(db.String(40), index=True)
     descripcion = db.Column(db.String(300), nullable=False)
     telefono = db.Column(db.String(20), nullable=False)
     lat = db.Column(db.Float, nullable=False)
@@ -66,6 +78,7 @@ class Reporte(db.Model):
         return {
             "id": self.id,
             "tipo": self.tipo,
+            "departamento": self.departamento,
             "descripcion": self.descripcion,
             "telefono": self.telefono,
             "lat": self.lat,
@@ -77,6 +90,33 @@ class Reporte(db.Model):
 
 with app.app_context():
     db.create_all()
+    # Migración mínima: bases creadas antes de que existiera la columna departamento
+    try:
+        with db.engine.connect() as conexion:
+            conexion.execute(text("ALTER TABLE reporte ADD COLUMN departamento VARCHAR(40)"))
+            conexion.commit()
+    except Exception:
+        pass
+
+
+@app.template_filter("hora_colombia")
+def hora_colombia(fecha):
+    """La BD guarda UTC; Colombia es UTC-5 todo el año."""
+    if not fecha:
+        return ""
+    local = fecha - timedelta(hours=5)
+    return local.strftime("%d/%m/%Y · %I:%M %p").lower()
+
+
+@app.template_filter("solo_digitos")
+def solo_digitos(telefono):
+    return re.sub(r"\D", "", telefono or "")
+
+
+@app.template_filter("whatsapp")
+def whatsapp(telefono):
+    digitos = re.sub(r"\D", "", telefono or "")
+    return f"57{digitos}" if len(digitos) == 10 else digitos
 
 
 @app.route("/")
@@ -84,21 +124,47 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/listado/<tipo>")
+def listado(tipo):
+    if tipo not in TIPOS:
+        abort(404)
+    departamento = request.args.get("departamento", "")
+    consulta = Reporte.query.filter_by(tipo=tipo)
+    if departamento in DEPARTAMENTOS:
+        consulta = consulta.filter_by(departamento=departamento)
+    else:
+        departamento = ""
+    reportes = consulta.order_by(Reporte.creado_en.desc()).limit(200).all()
+    conteo = dict(db.session.query(Reporte.tipo, func.count()).group_by(Reporte.tipo).all())
+    return render_template(
+        "listado.html",
+        tipo=tipo,
+        reportes=reportes,
+        departamento=departamento,
+        departamentos=DEPARTAMENTOS,
+        total_busco=conteo.get("busco", 0),
+        total_avistada=conteo.get("avistada", 0),
+    )
+
+
 @app.route("/reportar/<tipo>")
 def reportar(tipo):
     if tipo not in TIPOS:
         abort(404)
-    return render_template("reportar.html", tipo=tipo)
+    return render_template("reportar.html", tipo=tipo, departamentos=DEPARTAMENTOS)
 
 
 @app.route("/api/reportes", methods=["POST"])
 def crear_reporte():
     tipo = request.form.get("tipo", "")
+    departamento = request.form.get("departamento", "")
     descripcion = request.form.get("descripcion", "").strip()
     telefono = request.form.get("telefono", "").strip()
 
     if tipo not in TIPOS:
         return jsonify(error="Tipo de reporte inválido."), 400
+    if departamento not in DEPARTAMENTOS:
+        return jsonify(error="Selecciona el departamento."), 400
     if not descripcion or not telefono:
         return jsonify(error="La descripción y el teléfono son obligatorios."), 400
     try:
@@ -126,6 +192,7 @@ def crear_reporte():
 
     reporte = Reporte(
         tipo=tipo,
+        departamento=departamento,
         descripcion=descripcion[:300],
         telefono=telefono[:20],
         lat=lat,

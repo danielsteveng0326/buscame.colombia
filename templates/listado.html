@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if tipo == 'busco' %}Mascotas buscadas{% else %}Posibles mascotas encontradas{% endif %} · buscame.colombia
+{% endblock %}
+
+{% block content %}
+<section class="listado">
+  <nav class="tabs">
+    <a href="{{ url_for('listado', tipo='busco', departamento=departamento or None) }}"
+       class="tab tab-busco {% if tipo == 'busco' %}activa{% endif %}">
+      🔍 Buscadas ({{ total_busco }})
+    </a>
+    <a href="{{ url_for('listado', tipo='avistada', departamento=departamento or None) }}"
+       class="tab tab-avistada {% if tipo == 'avistada' %}activa{% endif %}">
+      📍 Posibles encontradas ({{ total_avistada }})
+    </a>
+  </nav>
+
+  <form method="get" class="filtro">
+    <label for="departamento">Región:</label>
+    <select id="departamento" name="departamento" onchange="this.form.submit()">
+      <option value="">Toda Colombia</option>
+      {% for d in departamentos %}
+      <option value="{{ d }}" {% if d == departamento %}selected{% endif %}>{{ d }}</option>
+      {% endfor %}
+    </select>
+  </form>
+
+  {% if not reportes %}
+  <p class="vacio">
+    Aún no hay reportes{% if departamento %} en {{ departamento }}{% endif %}.
+  </p>
+  {% endif %}
+
+  <div class="tarjetas">
+    {% for r in reportes %}
+    <article class="tarjeta">
+      {% if r.foto %}
+      <img src="/uploads/{{ r.foto }}" alt="Foto de la mascota" loading="lazy">
+      {% else %}
+      <div class="sin-foto">🐾</div>
+      {% endif %}
+      <div class="tarjeta-info">
+        <p class="tarjeta-desc">{{ r.descripcion }}</p>
+        <p class="tarjeta-meta">
+          {% if r.departamento %}📍 {{ r.departamento }} · {% endif %}{{ r.creado_en | hora_colombia }}
+        </p>
+        <p class="tarjeta-contacto">
+          <a href="tel:{{ r.telefono | solo_digitos }}">📞 Llamar</a>
+          <a href="https://wa.me/{{ r.telefono | whatsapp }}" target="_blank" rel="noopener">💬 WhatsApp</a>
+        </p>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

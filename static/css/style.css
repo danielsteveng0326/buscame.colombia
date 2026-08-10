@@ -100,12 +100,26 @@ main {
 }
 
 .contador {
+  display: block;
   background: var(--tarjeta);
   border: 1px solid var(--borde);
   border-radius: var(--radio);
   padding: 18px;
   text-align: center;
+  text-decoration: none;
+  color: var(--texto);
 }
+
+.contador em {
+  display: block;
+  font-style: normal;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.contador-busco em { color: var(--rojo); }
+.contador-avistada em { color: var(--verde); }
 
 .contador strong {
   display: block;
@@ -191,6 +205,7 @@ main {
 }
 
 .campo input[type="tel"],
+.campo select,
 .campo textarea {
   width: 100%;
   padding: 12px;
@@ -267,6 +282,105 @@ main {
 
 .exito { text-align: center; }
 .exito h2 { margin-top: 0; }
+
+/* Listados */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin: 20px 0 14px;
+  flex-wrap: wrap;
+}
+
+.tab {
+  padding: 10px 16px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+  background: var(--tarjeta);
+  border: 1px solid var(--borde);
+  color: var(--texto);
+}
+
+.tab-busco.activa { background: var(--rojo); border-color: var(--rojo); color: #fff; }
+.tab-avistada.activa { background: var(--verde); border-color: var(--verde); color: #fff; }
+
+.filtro {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.filtro label { font-weight: 600; }
+
+.filtro select {
+  padding: 10px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  font: inherit;
+  background: var(--tarjeta);
+  max-width: 100%;
+}
+
+.vacio {
+  color: var(--texto-suave);
+  background: var(--tarjeta);
+  border: 1px dashed var(--borde);
+  border-radius: var(--radio);
+  padding: 24px;
+  text-align: center;
+}
+
+.tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.tarjeta {
+  background: var(--tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.tarjeta img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.sin-foto {
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  background: var(--fondo);
+}
+
+.tarjeta-info { padding: 12px 14px 14px; }
+.tarjeta-desc { margin: 0 0 6px; font-weight: 600; }
+
+.tarjeta-meta {
+  margin: 0 0 10px;
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+}
+
+.tarjeta-contacto {
+  margin: 0;
+  display: flex;
+  gap: 14px;
+}
+
+.tarjeta-contacto a {
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--verde-oscuro);
+}
 
 /* Pie */
 .pie {

@@ -27,9 +27,11 @@ function enlacesContacto(telefono) {
 
 function popupReporte(r) {
   const foto = r.foto ? `<img src="${r.foto}" class="popup-foto" alt="Foto de la mascota">` : "";
+  const depto = r.departamento ? `<p class="popup-depto">📍 ${escapar(r.departamento)}</p>` : "";
   return `${foto}
     <p class="popup-tipo" style="color:${COLORES[r.tipo]}">${ETIQUETAS[r.tipo] || r.tipo}</p>
     <p>${escapar(r.descripcion)}</p>
+    ${depto}
     ${enlacesContacto(r.telefono)}`;
 }
 

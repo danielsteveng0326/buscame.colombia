@@ -25,6 +25,16 @@
     </div>
 
     <div class="campo">
+      <label for="departamento">Departamento</label>
+      <select id="departamento" name="departamento" required>
+        <option value="" disabled selected>Selecciona…</option>
+        {% for d in departamentos %}
+        <option value="{{ d }}">{{ d }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="campo">
       <label for="descripcion">Breve descripción</label>
       <textarea id="descripcion" name="descripcion" maxlength="300" rows="3" required
         placeholder="Ej: perrita criolla café, collar rojo, responde a Luna"></textarea>

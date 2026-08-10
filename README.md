@@ -16,6 +16,7 @@ La vista inicial tiene solo **2 botones**:
 Cada reporte captura:
 
 - 📡 **Ubicación GPS** del navegador (automática)
+- 🗺️ **Departamento** (sugerido automáticamente según el GPS, corregible)
 - 📝 **Breve descripción** de la mascota
 - 📞 **Teléfono de contacto** (con enlaces directos para llamar o escribir por WhatsApp)
 - 📷 **Foto** (opcional, máx. 5 MB)
@@ -24,6 +25,7 @@ La página principal muestra además:
 
 - **Contadores en tiempo real** de mascotas buscadas y posibles encontradas
 - **Mapa de Colombia** (Leaflet + OpenStreetMap) con todos los reportes, diferenciados por color
+- **Listados con foto** de buscadas y posibles encontradas, con **filtro por departamento** (tocando cada contador)
 
 ## Stack
 
@@ -61,12 +63,13 @@ buscame.colombia/
 |---|---|---|
 | `/` | GET | Vista inicial |
 | `/reportar/<tipo>` | GET | Formulario (`busco` o `avistada`) |
+| `/listado/<tipo>` | GET | Listado con fotos, filtrable con `?departamento=` |
 | `/api/reportes` | POST | Crear reporte (multipart/form-data) |
 | `/api/reportes` | GET | Últimos 500 reportes en JSON (para el mapa) |
 | `/api/stats` | GET | Contadores por tipo |
 | `/uploads/<archivo>` | GET | Fotos (redirige a URL firmada del bucket) |
 
-**Modelo `Reporte`**: `id`, `tipo` (`busco` / `avistada`), `descripcion` (300), `telefono` (20), `lat`, `lng`, `foto`, `creado_en`.
+**Modelo `Reporte`**: `id`, `tipo` (`busco` / `avistada`), `departamento`, `descripcion` (300), `telefono` (20), `lat`, `lng`, `foto`, `creado_en`.
 
 ## Correr en local
 
@@ -116,8 +119,8 @@ Con eso queda en línea. Cada push a `main` redespliega automáticamente.
 
 ## Roadmap
 
+- [x] Filtro por departamento en los listados
 - [ ] Marcar reportes como resueltos ("¡ya apareció!")
-- [ ] Filtro por ciudad / departamento
 - [ ] Notificaciones cuando aparece un reporte cerca de tu búsqueda
 - [ ] Moderación básica de reportes (eliminar spam)
 - [ ] PWA instalable con soporte offline
