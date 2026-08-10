@@ -124,4 +124,4 @@ Con eso queda en línea. Cada push a `main` redespliega automáticamente.
 
 ## Licencia
 
-Proyecto de código abierto con fines humanitarios. Úsalo, cópialo y mejóralo libremente. 🇨🇴
+[MIT](LICENSE) — proyecto de código abierto con fines humanitarios. Úsalo, cópialo y mejóralo libremente. 🇨🇴
