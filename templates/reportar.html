@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if tipo == 'busco' %}Busco a mi mascota{% else %}Reportar mascota avistada{% endif %} · buscame.colombia
+{% endblock %}
+
+{% block content %}
+<section class="formulario">
+  {% if tipo == 'busco' %}
+    <h1>🔍 Busco a mi mascota</h1>
+    <p>Cuéntanos cómo es y dónde se perdió. Tu reporte aparecerá de inmediato en el mapa.</p>
+  {% else %}
+    <h1>📍 Esta mascota puede estar perdida</h1>
+    <p>Gracias por ayudar. Describe la mascota que viste y deja un teléfono de contacto.</p>
+  {% endif %}
+
+  <form id="form-reporte" novalidate>
+    <input type="hidden" name="tipo" value="{{ tipo }}">
+    <input type="hidden" name="lat" id="lat">
+    <input type="hidden" name="lng" id="lng">
+
+    <div class="campo campo-gps" id="estado-gps" data-estado="buscando">
+      <span id="gps-texto">📡 Obteniendo tu ubicación…</span>
+      <button type="button" id="gps-reintentar" class="enlace" hidden>Reintentar</button>
+    </div>
+
+    <div class="campo">
+      <label for="descripcion">Breve descripción</label>
+      <textarea id="descripcion" name="descripcion" maxlength="300" rows="3" required
+        placeholder="Ej: perrita criolla café, collar rojo, responde a Luna"></textarea>
+    </div>
+
+    <div class="campo">
+      <label for="telefono">Teléfono de contacto</label>
+      <input type="tel" id="telefono" name="telefono" maxlength="20" required
+        placeholder="Ej: 3001234567" inputmode="tel">
+    </div>
+
+    <div class="campo">
+      <label for="foto">Foto (opcional, máx. 5 MB)</label>
+      <input type="file" id="foto" name="foto" accept="image/jpeg,image/png,image/webp">
+      <img id="preview" alt="Vista previa de la foto" hidden>
+    </div>
+
+    <p class="error" id="error" hidden></p>
+
+    <button type="submit" class="boton-enviar {% if tipo == 'busco' %}boton-busco{% else %}boton-avistada{% endif %}" id="enviar">
+      Publicar reporte
+    </button>
+  </form>
+
+  <div class="exito" id="exito" hidden>
+    <h2>✅ ¡Reporte publicado!</h2>
+    <p>Ya está visible en el mapa para que más personas puedan ayudar.</p>
+    <a href="{{ url_for('index') }}" class="boton-enviar boton-avistada">Volver al inicio</a>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/reportar.js') }}"></script>
+{% endblock %}

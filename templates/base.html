@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Conecta de manera rápida y directa a las mascotas perdidas con sus dueños en Colombia.">
+  <title>{% block title %}buscame.colombia 🐾{% endblock %}</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header class="cabecera">
+    <a href="{{ url_for('index') }}" class="logo">🐾 buscame<span>.colombia</span></a>
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="pie">
+    Hecho para reencontrar familias con sus mascotas 🇨🇴
+  </footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
